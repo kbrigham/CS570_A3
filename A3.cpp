@@ -4,7 +4,10 @@
 // Description : Assignment 3, CS570 Summer 2014
 //================================================================
 #include "A3.h"
+#include "A3.h"
 
+#define purple "\x1b[35m"
+#define reset "\e[m"
 
 using namespace std;
 /*
@@ -24,14 +27,14 @@ pid_t pid = fork();
         int i = 0;
         for (; i < 1; ++i)
         {
-            printf("child process: counter=%d\n", ++counter);
+            printf(purple "child process: counter=%d" reset "\n", ++counter);
             
             sleep(1);
         }
         
 
         close(fildes[1]);          /* Close unused write end */
-        cout << "about to read" << endl;
+        cout << "\x1b[33m about to read \e[m" << endl;
         
         //cout << fstat(fildes[0])<<endl;
         //dup2(fildes[0],1);
@@ -49,21 +52,21 @@ pid_t pid = fork();
                 //else if (S_ISREG(stats.st_mode)) cout << "S_ISREG\n";
                 //else cout << "unknown stat mode\n";
                 bytesAvail = stats.st_size;
-                cout << "bytes available=" << (int)bytesAvail<<endl;
+                cout << "\x1b[36m bytes available= \e[m" << (int)bytesAvail<<endl;
                 sleep(1);
             }
         }
             nbytes = read(fildes[0], buf, BUFSIZE);
             //write(STDOUT_FILENO, buf, sizeof(buf));
-            cout << "reading data, " << buf <<endl;
+            cout << "\x1b[35m reading data, \e[m" << buf <<endl;
             //nbytes = read(fildes[0], buf, BUFSIZE);// == 0);//{
             //write(STDOUT_FILENO, buf, BUFSIZE);
             //cout << "reading data," << (int)nbytes<<endl;
             //}
-        cout << "done reading" << endl;
+        cout << "\x1b[35m done reading \e[m" << endl;
         write(STDOUT_FILENO, "\n", 1);
         close(fildes[0]);
-        cout << "child pipe closed" << endl;
+        cout << "\x1b[32m child pipe closed \e[m" << endl;
         char *argv = "/opt/local/bin/uptime";
         char *newargv[] = {NULL};
         char *newenviron[] = { NULL };
@@ -76,21 +79,21 @@ pid_t pid = fork();
         int j = 0;
         for (; j < 1; ++j)
         {
-            printf("parent process: counter=%d\n", ++counter);
+            printf(purple "parent process: counter=%d" reset "\n", ++counter);
             sleep(1);
         }
         /* Parent writes argv[1] to pipe */
         close(fildes[0]);          /* Close unused read end */
         //char *test = "blah";
-        cout << "sending "<<endl;
+        cout << "\x1b[32m sending \e[m"<<endl;
         write(fildes[1], "Hello world\n\0", 13);
-        cout << "done sending" << endl;
+        cout << "\x1b[32m done sending \e[m" << endl;
         close(fildes[1]);          /* Reader will see EOF */
-        cout << "parent pipe closed" << endl;
+        cout << "\x1b[33m parent pipe closed \e[m" << endl;
         wait(NULL);                /* Wait for child */
         //int returnStatus;
         //waitpid(pid, &returnStatus, 0);
-        cout << "closing parent" <<endl;
+        cout << "\x1b[32m closing parent \e[m" <<endl;
         exit(EXIT_SUCCESS);
     }
     else
