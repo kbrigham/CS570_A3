@@ -17,9 +17,10 @@ pid_t pid = fork();
     char buf[BUFSIZE];
     ssize_t nbytes;
     int counter = 0;
-    if (pid == 0)
+    
+    if (pid == 0) // child process
     {
-        // child process
+        
         int i = 0;
         for (; i < 1; ++i)
         {
@@ -36,6 +37,22 @@ pid_t pid = fork();
         //dup2(fildes[0],1);
         //while ( == 0){
         //fcntl(mypipe[0], F_SETFL, O_NONBLOCK)
+        struct stat stats;
+        int r;
+        off_t bytesAvail = -1;
+        for(int i =0; i<2; i++){
+            r = fstat(fildes[0], &stats);
+            if (r < 0) perror("fstat failed");
+            else {
+                //if (S_ISCHR(stats.st_mode)) cout << "S_ISCHR\n";
+                //else if (S_ISFIFO(stats.st_mode)) cout << "S_ISFIFO\n";
+                //else if (S_ISREG(stats.st_mode)) cout << "S_ISREG\n";
+                //else cout << "unknown stat mode\n";
+                bytesAvail = stats.st_size;
+                cout << "bytes available=" << (int)bytesAvail<<endl;
+                sleep(1);
+            }
+        }
             nbytes = read(fildes[0], buf, BUFSIZE);
             //write(STDOUT_FILENO, buf, sizeof(buf));
             cout << "reading data, " << buf <<endl;
