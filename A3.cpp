@@ -13,12 +13,12 @@ using namespace std;
 /*
 This program shall simulate
 */
-int process0(int *fildes){
+void process1(int *fildes){
 	const int BUFSIZE =100;
     char buf[BUFSIZE];
     ssize_t nbytes;
     close(fildes[1]);          /* Close unused write end */
-    cout << "\x1b[33m about to read \e[m" << endl;
+    cout << "process1: \x1b[33m about to read \e[m" << endl;
     ///fcntl(mypipe[0], F_SETFL, O_NONBLOCK)
     struct stat stats;
     int r;
@@ -26,34 +26,35 @@ int process0(int *fildes){
     for(int i =0; i<2; i++){
 		time_t now = time(0);
 		tm *ltm = localtime(&now);
-		cout << "The time is now: " << ltm->tm_hour << "h:" << ltm->tm_min << "m:" << ltm->tm_sec << "s\n";
+		cout << "process1: The time is now: " << ltm->tm_hour << "h:" << ltm->tm_min << "m:" << ltm->tm_sec << "s\n";
         r = fstat(fildes[0], &stats);
-        if (r < 0) perror("fstat failed");
+        if (r < 0) perror("process0: fstat failed");
         else {
             ///if (S_ISCHR(stats.st_mode)) cout << "S_ISCHR\n";
             ///else if (S_ISFIFO(stats.st_mode)) cout << "S_ISFIFO\n";
             ///else if (S_ISREG(stats.st_mode)) cout << "S_ISREG\n";
             ///else cout << "unknown stat mode\n";
             bytesAvail = stats.st_size;
-            cout << "\x1b[36m bytes available= \e[m" << (int)bytesAvail<<endl;
-            sleep(1);
+            cout << "process1:\x1b[36m bytes available= \e[m" << (int)bytesAvail<<endl;
             if(bytesAvail > 0){
                 nbytes = read(fildes[0], buf, BUFSIZE);
-                cout << "\x1b[35m reading data, \e[m" << buf <<endl;
+				//nbytes = read(fildes[0], buf, 1);
+                cout << "process1:\x1b[35m reading data, \e[m" << buf <<endl;
                 break;
-                }
             }
+            sleep(1);
         }
-		cout << "\x1b[35m done reading \e[m" << endl;
-        write(STDOUT_FILENO, "\n", 1);
-        close(fildes[0]);
-        cout << "\x1b[32m child pipe closed \e[m" << endl;
-        _exit(EXIT_SUCCESS);
+    }
+	cout << "process1:\x1b[35m done reading \e[m" << endl;
+    write(STDOUT_FILENO, "\n", 1);
+    close(fildes[0]);
+    cout << "process1:\x1b[32m child pipe closed \e[m" << endl;
+    _exit(EXIT_SUCCESS);
 }
 
-void process1(){
-	cout << "called proc1\n";
-	int sleepT = 3;
+void process2(int *fildes){
+	cout << "process2: called proc1\n";
+	int sleepT = 1;
 	for(int x = 0; x < 2; x++){
 		pid_t pid = fork();
 		if (pid == 0) { // child process
@@ -65,58 +66,74 @@ void process1(){
 		}
 		else 
 			if(pid>0){
-				cout << "proc1 sleeping \n";
+				cout << "process2: proc1 sleeping \n";
 				sleep(sleepT);
 			}
 			else
-				cout << "errorrr";
-		
-		
+				cout << "process2: errorrr";
 	}
 }
 
-void countDown(int *fildes){
+void process3(int *fildes){
         /* Parent writes argv[1] to pipe */
-        close(fildes[0]);          /* Close unused read end */
+        close(fildes[0]);          /* Close unused read end */ 
         //char *test = "blah";
-        cout << "\x1b[32m sending \e[m"<<endl;
+        cout << "process3: \x1b[32m sending \e[m"<<endl;
         write(fildes[1], "Hello world\n\0", 13);
-        cout << "\x1b[32m done sending \e[m" << endl;
+        cout << "process3: \x1b[32m done sending \e[m" << endl;
         close(fildes[1]);          /* Reader will see EOF */
-        cout << "\x1b[33m parent pipe closed \e[m" << endl;
+        cout << "process3: \x1b[33m parent pipe closed \e[m" << endl;
 }
 
-int createProc(int *fildes,int numOfSec){
+int createProc(int numOfSec){
+	cout << endl << endl << endl ;
 
-pid_t pid = fork();
+    
+    // int fildes[2];
+    // if (pipe(fildes) == -1) {
+        // perror("pipe");
+        // exit(EXIT_FAILURE);
+    // }
+	
+	pid_t pid = fork();
     
     int counter = 0;
     
-    if (pid == 0) // child process
+    if (pid == 0) // child process 1 (prints time)
     {
-		pid_t pid2 = fork();
-		if (pid2 == 0) // grandchild process
+		int fildes[2];
+		if (pipe(fildes) < 0) { // if creating pipe fails
+			perror("createProc: pipe error");
+			exit(EXIT_FAILURE);
+		}
+		pid_t pid2 = fork(); //forking process
+		if (pid2 > 0) { // process 1
+			cout << "createProc: calling proc 1\n";
+			cout << "createProc:  calling proc 0\n";
+			process1(fildes);
+			wait(NULL); //every parent waits for it's child.
+		}
+		else if (pid2 == 0) // child process proc 2 (runs uptime)
 		{
-			pid_t pid3 = fork();
-			if (pid3 == 0) // great-grandchild process
+			pid_t pid3 = fork(); //forking
+			if (pid3 > 0) { // parent process
+							//wait(NULL);
+				process2(fildes);
+				//cout << "createProc: waiting for proc 3\n";
+				wait(NULL);
+			}
+			else if (pid3 == 0) // child process proc 3 (countDown)
 			{
-				cout << " calling proc countdown\n";
-				countDown(fildes);
+				cout << "createProc: calling proc countdown\n";
+				process3(fildes);
+				
 			}
-			else { // grandchild process
-				if (pid3 > 0) {
-					cout << "waiting for proc 3\n";
-					wait(NULL);
-				}
-			}
-			cout << " calling proc 0\n";
-			process0(fildes);
-			wait(NULL);
 		}
-		else if (pid2 > 0) {
-			cout << " calling proc 1\n";
-			process1();
+		else if(pid2 < 0){
+			cout << "error creating process: " << pid2 <<endl;
 		}
+	}
+
 
         // int i = 0;
         // for (; i < 1; ++i)
@@ -131,30 +148,21 @@ pid_t pid = fork();
             //write(STDOUT_FILENO, buf, BUFSIZE);
             //cout << "reading data," << (int)nbytes<<endl;
             //}
-        
-    }
-    else if (pid > 0)
+    else if (pid > 0) // process 0 (parent of all) Just waits.
     {
-        // parent process
-        int j = 0;
-        for (; j < 1; ++j)
-        {
-            printf(purple "parent process: counter=%d" reset "\n", ++counter);
-            sleep(1);
-        }
-
         ///wait(NULL);                /* Wait for child */
 		///wait(NULL);					// wait for second child
+
         int returnStatus;
         waitpid(pid, &returnStatus, 0);
-        cout << "\x1b[32m closing parent \e[m" <<endl;
+        cout << "createProc: \x1b[32m closing parent \e[m" <<endl;
         return 0;
 		//exit(EXIT_SUCCESS);
     }
     else
     {
         // fork failed
-        printf("fork() failed!\n");
+        printf("createProc: fork() failed!\n");
         return 1;
     }
 }
@@ -165,20 +173,12 @@ int main(int argc, char **argv){
     //const int PAGESIZE = getInput("Please enter the number of pages: ");
     int numOfSec = 10;
     int procNum = 0;
-    int fildes[2];
-
-	cout << endl << endl << endl ;
-    
-    if (pipe(fildes) == -1) {
-        perror("pipe");
-        exit(EXIT_FAILURE);
-    }
 	
-    int status = createProc(fildes,numOfSec);
+    int status = createProc(numOfSec);
     if(status != 0){
-        //cout << "Error" << endl;
+        cout << "Error: " << status << endl;
         return 1;
-        }
+    }
 
     return 0;
 }
