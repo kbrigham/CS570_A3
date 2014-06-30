@@ -6,9 +6,6 @@
 #include "A3.h"
 #include "Clock.h"
 
-#define purple "\x1b[35m"
-#define reset "\e[m"
-
 using namespace std;
 /*
 This program shall
@@ -29,7 +26,7 @@ int main(int argc, char *argv[]){
 void createProc(int numOfSec){
 //forks everything
 	Clock Clk(numOfSec);
-	cout << endl << endl << endl <<endl ;
+	//cout << endl << endl << endl <<endl ;
 
 	pid_t pid = fork();
     
