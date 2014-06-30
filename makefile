@@ -8,7 +8,7 @@
 ###########################################################
 EXEC =a3
 CC =g++
-SOURCES=A3.cpp
+SOURCES=A3.cpp Clock.cpp
 FLAGS=-pipe
 
 $(EXEC): 
