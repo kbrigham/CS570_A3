@@ -41,7 +41,6 @@ void createProc(int numOfSec){
 		}
 		pid_t pid2 = fork(); //forking process
 		if (pid2 > 0) { // process 1
-			cout << "createProc: calling proc 1\n";
 			Clk.process1(fildes);
 			wait(NULL); //every parent waits for it's child.
 		}
@@ -54,7 +53,6 @@ void createProc(int numOfSec){
 			}
 			else if (pid3 == 0) // child process proc 3 (countDown)
 			{
-				cout << "createProc: calling proc countdown\n";
 				Clk.process3(fildes);
 				
 			}
