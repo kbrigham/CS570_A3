@@ -4,7 +4,7 @@
 // Description : Assignment 3, CS570 Summer 2014
 //================================================================
 
-File manifest:
+File manifest: Located in MASC1420
 -A3.h
 -A3.cpp
 -Clock.h
