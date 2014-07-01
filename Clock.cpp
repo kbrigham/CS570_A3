@@ -75,7 +75,7 @@ void Clock::process2(int *fildes){
 				}
 			}
 			else
-				cout << "process2: errorrr";
+				cout << "process2: error";
 	}
 }
 
@@ -103,6 +103,5 @@ void Clock::process3(int *fildes){
 
 
 Clock::~Clock() {
-	// TODO Auto-generated destructor stub
 }
 
