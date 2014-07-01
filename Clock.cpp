@@ -20,7 +20,7 @@ void Clock::process1(int *fildes){
 	while(true){
 		time_t now = time(0);
 		tm *ltm = localtime(&now);
-		cout << "\x1b[35m The time is now: \e[m \n" << "  " << ltm->tm_hour << "h:" << ltm->tm_min << "m:" << ltm->tm_sec << "s\n";
+		cout << "\x1b[35m The time is now: \e[m" << ltm->tm_hour << "h:" << ltm->tm_min << "m:" << ltm->tm_sec << "s\n";
         sleep(1);
         r = fstat(fildes[0], &stats);
         if (r < 0) perror("process1: fstat failed");
@@ -85,7 +85,7 @@ void Clock::process3(int *fildes){
 		minutes = seconds / 60;
 		seconds = seconds - (60 * minutes);
 		while(true){
-			cout << "\x1b[35m Time Remaining: \e[m" <<  minutes << ":" << seconds << "\n" <<endl;
+			cout << "\x1b[35m Time Remaining: \e[m" <<  minutes << ":" << seconds <<endl;
 			if(seconds == 0 && minutes > 0){
 				seconds=59;
 				minutes--;
